@@ -10,6 +10,8 @@ class EventEmitter {
     }
 }
 
+export enum GameMode { CLIENT, SERVER };
+
 export default class Game extends EventEmitter {
     protected engine: Matter.Engine;
     protected paddleWidth = 10;
@@ -19,14 +21,16 @@ export default class Game extends EventEmitter {
     protected wallTop: Matter.Body;
     protected wallBottom: Matter.Body;
     protected interval?: NodeJS.Timer;
+    protected mode: GameMode;
 
-    public readonly BASE_PLAYER_SPEED = 1;
-    public readonly MAX_PLAYER_SPEED = 2;
-    public readonly SPEED_ACCELERATION = 0.1;
+    readonly BASE_PLAYER_SPEED = 1;
+    readonly MAX_PLAYER_SPEED = 2;
+    readonly SPEED_ACCELERATION = 0.05;
 
-    constructor() {
+    constructor(mode: GameMode) {
         super();
 
+        this.mode = mode;
         this.engine = Matter.Engine.create({ gravity: { y: 0, x: 0 } });
         const paddleOpts = { isStatic: false, isSensor: true };
 
@@ -37,69 +41,53 @@ export default class Game extends EventEmitter {
         ];
 
         const ball = Matter.Bodies.rectangle(30, 30, 6, 6, { isSensor: true });
-        ball.label = "ball";
+        ball.label = 'ball';
         ball.friction = 0;
         ball.frictionAir = 0;
         this.ball = ball;
 
         this.wallTop = Matter.Bodies.rectangle(0, 0, 800, 5, { isStatic: true });
-        this.wallTop.label = "wallTop";
+        this.wallTop.label = 'wallTop';
 
         this.wallBottom = Matter.Bodies.rectangle(0, 395, 800, 5, { isStatic: true });
-        this.wallBottom.label = "wallBottom";
+        this.wallBottom.label = 'wallBottom';
 
         Matter.World.add(this.engine.world, [...this.players, ball, this.wallTop, this.wallBottom]);
     }
 
     private collisionHandler(event: Matter.IEventCollision<Matter.Engine>) {
-        const pairs = event.pairs;
-        console.log('collision');
-        console.log({ a: pairs[0].bodyA, b: pairs[0].bodyB });
-        pairs.forEach(pair => {
-            // Check if the ball collides with a paddle
-            if (
-                (pair.bodyA === this.ball && pair.bodyB === this.players[0]) ||
-                (pair.bodyA === this.players[0] && pair.bodyB === this.ball) ||
-                (pair.bodyA === this.ball && pair.bodyB === this.players[1]) ||
-                (pair.bodyA === this.players[1] && pair.bodyB === this.ball)
-            ) {
-                // Reverse the ball's velocity in the x-axis
-                const oldV = this.ball.velocity.x;
-                const newV = -oldV;
-                // game.ball.velocity.x = newV;
-                Matter.Body.setVelocity(this.ball, { x: newV, y: this.ball.velocity.y })
-                console.log('changed v.x from ' + oldV + ' to ' + newV);
-                this.emit('ball', {
-                    x: this.ball.position.x,
-                    y: this.ball.position.y,
-                    vx: this.ball.velocity.x,
-                    vy: this.ball.velocity.y
-                })
+        const b = this.ball;
+        for (const pair of event.pairs) {
+            for (const player of this.players) {
+                if (pair.bodyA === b && pair.bodyB === player ||
+                    pair.bodyA === player && pair.bodyB === b
+                ) {
+                    if (this.mode === GameMode.SERVER) {
+                        // Reverse the ball's velocity in the x-axis
+                        this.setBall(b.position.x, b.position.y, -b.velocity.x, b.velocity.y);
+                    } else {
+                        this.setBall(b.position.x, b.position.y, 0, 0);
+                    }
+                    break;
+                }
             }
-
-            if (
-                (pair.bodyA === this.ball && pair.bodyB === this.wallTop) ||
-                (pair.bodyA === this.wallTop && pair.bodyB === this.ball) ||
-                (pair.bodyA === this.ball && pair.bodyB === this.wallBottom) ||
-                (pair.bodyA === this.wallBottom && pair.bodyB === this.ball)
-            ) {
-                // Reverse the ball's velocity in the x-axis
-                const oldV = this.ball.velocity.y;
-                const newV = -oldV;
-                //game.ball.velocity.y = newV;
-                Matter.Body.setVelocity(this.ball, { x: this.ball.velocity.x, y: newV })
-                console.log('changed v.y from ' + oldV + ' to ' + newV);
+            for (const wall of [this.wallTop, this.wallBottom]) {
+                if (pair.bodyA === this.ball && pair.bodyB === wall ||
+                    pair.bodyA === wall && pair.bodyB === this.ball
+                ) {
+                    // Reverse the ball's velocity in the x-axis
+                    this.setBall(b.position.x, b.position.y, b.velocity.x, -b.velocity.y);
+                    break;
+                }
             }
-        });
+        }
     }
 
     public start(reset: boolean = true) {
-        // if (reset) {
-        Matter.Body.setPosition(this.ball, { x: 300, y: 300 });
-        Matter.Body.setVelocity(this.ball, { x: 0.4, y: 0.4 });
-        // }
+        if (this.mode === GameMode.SERVER && reset) {
+            this.setBall(30, 30, 0.4, 0.04);
+        }
         Matter.Events.on(this.engine, 'collisionStart', this.collisionHandler.bind(this));
-
         this.interval = setInterval(this.gameLoop.bind(this), 1000 / 60);
     }
 
@@ -107,37 +95,56 @@ export default class Game extends EventEmitter {
         clearInterval(this.interval);
     }
 
-    public setPlayerVelocity(player: number, velocity: number) {
-        if (velocity > 0) {
-            velocity = this.BASE_PLAYER_SPEED;
-        } else if (velocity < 0) {
-            velocity = -this.BASE_PLAYER_SPEED;
-        } else {
-            velocity = 0;
+    public setPlayer(i: number, y: number, vy: number) {
+        const p = this.players[i];
+        if (vy > 0) {
+            vy = this.BASE_PLAYER_SPEED;
+        } else if (vy < 0) {
+            vy = -this.BASE_PLAYER_SPEED;
         }
-        Matter.Body.setVelocity(this.players[player], { x: 0, y: velocity });
 
-        this.emit('player', {
-            i: player,
-            x: this.players[player].position.x,
-            y: this.players[player].position.y,
-            v: this.players[player].velocity.y,
-        })
+        Matter.Body.setPosition(p, { x: p.position.x, y });
+        Matter.Body.setVelocity(p, { x: 0, y: vy });
+
+        this.emit('player', { i, y, vy });
+    }
+
+    public movePlayer(i: number, direction: number) {
+        const p = this.players[i];
+        let vy = 0;
+        if (direction > 0) {
+            vy = this.BASE_PLAYER_SPEED;
+        } else if (direction < 0) {
+            vy = -this.BASE_PLAYER_SPEED;
+        }
+        this.setPlayer(i, p.position.y, vy);
+    }
+
+    public setBall(x: number, y: number, vx: number, vy: number) {
+        Matter.Body.setPosition(this.ball, { x, y });
+        Matter.Body.setVelocity(this.ball, { x: vx, y: vy });
+        this.emit('ball', {
+            x: this.ball.position.x,
+            y: this.ball.position.y,
+            vx: this.ball.velocity.x,
+            vy: this.ball.velocity.y
+        });
     }
 
     protected gameLoop() {
         // players acceleration
         for (let i = 0; i < 2; i++) {
             const p = this.players[i];
+
             if (p.velocity.y != 0) {
                 if (p.velocity.y > 0 && p.velocity.y < this.MAX_PLAYER_SPEED) {
-                    p.velocity.y = Math.min(p.velocity.y + this.SPEED_ACCELERATION, this.MAX_PLAYER_SPEED);
+                    this.setPlayer(i, p.position.y, Math.min(p.velocity.y + this.SPEED_ACCELERATION, this.MAX_PLAYER_SPEED));
                 } else if (p.velocity.y > -this.MAX_PLAYER_SPEED) {
-                    p.velocity.y = Math.max(p.velocity.y - this.SPEED_ACCELERATION, -this.MAX_PLAYER_SPEED);
+                    this.setPlayer(i, p.position.y, Math.max(p.velocity.y - this.SPEED_ACCELERATION, -this.MAX_PLAYER_SPEED));
                 }
             }
+            Matter.Engine.update(this.engine);
         }
-        Matter.Engine.update(this.engine);
     }
 
     public World() {

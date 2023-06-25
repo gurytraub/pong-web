@@ -29,71 +29,44 @@ socket.on('disconnection', () => {
     console.log('Disconnected from server');
 });
 
-socket.on('player', number => {
-    playerNumber = number;
-    console.log(`You are Player ${playerNumber}`);
+socket.on('player', p => {
+    console.log('setting player info', { p });
+    game.setPlayer(p.i, p.y, p.vy);
+});
+
+socket.on('ball', b => {
+    console.log('setting ball info', { b });
+    game.setBall(b.x, b.y, b.vx, b.vy);
 });
 
 socket.on('start', () => {
     console.log('Game started!');
 });
 
-// socket.on('message', message => {
-//     console.log(message);
-// });
-
-// socket.on('gameState', gameState => {
-//     // console.log("Updating game state")
-//     // updateGame(gameState);
-// });
-
-//handle keyboard
-// const keys: { [key: string]: boolean } = {};
-
+let direction = 0;
 function onKeyDown(event: KeyboardEvent) {
-    // keys[event.code] = true;
     if (event.code === "ArrowUp") {
-        socket.emit("move", { v: -1 });
+        if (direction !== -1) {
+            socket.emit("move", { v: -1 });
+            direction = -1;
+        }
     } else if (event.code === "ArrowDown") {
-        socket.emit("move", { v: 1 });
+        if (direction !== 1) {
+            socket.emit("move", { v: 1 });
+            direction = 1;
+        }
     }
 }
 function onKeyUp(event: KeyboardEvent) {
     if (event.code === "ArrowUp" || event.code === "ArrowDown") {
         socket.emit('move', { v: 0 });
+        direction = 0;
     }
 }
 
 // Attach event listeners
 window.addEventListener('keydown', onKeyDown);
 window.addEventListener('keyup', onKeyUp);
-
-// app.ticker.add(() => {
-//     // Access the keyboard state
-//     // keys['KeyA'] will be true if 'A' key is currently pressed
-//     // keys['KeyB'] will be true if 'B' key is currently pressed
-//     // Add your logic here based on the key state  
-//     Object.keys(keys).forEach(k => {
-//         console.log(keys[k]);
-//     });
-
-//     if (keys.ArrowUp) {
-//         console.log({ keys })
-//         if (game.playerPaddleGraphics.position.y - 3 > 0) {
-//             socket.emit('paddleMovement', { y: game.playerPaddleGraphics.position.y - 3 });
-//         }
-//     }
-//     if (keys.ArrowDown) {
-//         console.log({ keys })
-//         if (game.playerPaddleGraphics.position.y + 3 < 400) {
-//             socket.emit('paddleMovement', { y: game.playerPaddleGraphics.position.y + 3 });
-//         }
-//     }
-// });
-
-
-
-
 
 window.onload = async (): Promise<void> => {
     document.body.appendChild(app.view);
