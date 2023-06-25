@@ -1,13 +1,11 @@
 import { Application, Loader, Texture, AnimatedSprite } from "pixi.js";
-import { getSpine } from "./spine-example";
+import * as PIXI from 'pixi.js';
+import io from 'socket.io-client';
 import "./style.css";
+import PIXIGame from './PIXIGame';
 
-declare const VERSION: string;
-
+const gameHeight = 400;
 const gameWidth = 800;
-const gameHeight = 600;
-
-console.log(`Welcome from pixi-typescript-boilerplate ${VERSION}`);
 
 const app = new Application({
     backgroundColor: 0xd3d3d3,
@@ -15,42 +13,92 @@ const app = new Application({
     height: gameHeight,
 });
 
-window.onload = async (): Promise<void> => {
-    await loadGameAssets();
+let game: PIXIGame;
+let playerNumber: number;
 
-    document.body.appendChild(app.view);
+game = new PIXIGame(app);
+game.start();
 
-    resizeCanvas();
+const socket = io('http://localhost:3000/');
 
-    const birdFromSprite = getBird();
-    birdFromSprite.anchor.set(0.5, 0.5);
-    birdFromSprite.position.set(gameWidth / 2, 530);
+socket.on('connect', () => {
+    console.log('Connected to server');
+});
 
-    const spineExample = getSpine();
-    spineExample.position.y = 580;
+socket.on('disconnection', () => {
+    console.log('Disconnected from server');
+});
 
-    app.stage.addChild(birdFromSprite);
-    app.stage.addChild(spineExample);
-    app.stage.interactive = true;
-};
+socket.on('player', number => {
+    playerNumber = number;
+    console.log(`You are Player ${playerNumber}`);
+});
 
-async function loadGameAssets(): Promise<void> {
-    return new Promise((res, rej) => {
-        const loader = Loader.shared;
-        loader.add("rabbit", "./assets/simpleSpriteSheet.json");
-        loader.add("pixie", "./assets/spine-assets/pixie.json");
+socket.on('start', () => {
+    console.log('Game started!');
+});
 
-        loader.onComplete.once(() => {
-            res();
-        });
+// socket.on('message', message => {
+//     console.log(message);
+// });
 
-        loader.onError.once(() => {
-            rej();
-        });
+// socket.on('gameState', gameState => {
+//     // console.log("Updating game state")
+//     // updateGame(gameState);
+// });
 
-        loader.load();
-    });
+//handle keyboard
+// const keys: { [key: string]: boolean } = {};
+
+function onKeyDown(event: KeyboardEvent) {
+    // keys[event.code] = true;
+    if (event.code === "ArrowUp") {
+        socket.emit("move", { v: -1 });
+    } else if (event.code === "ArrowDown") {
+        socket.emit("move", { v: 1 });
+    }
 }
+function onKeyUp(event: KeyboardEvent) {
+    if (event.code === "ArrowUp" || event.code === "ArrowDown") {
+        socket.emit('move', { v: 0 });
+    }
+}
+
+// Attach event listeners
+window.addEventListener('keydown', onKeyDown);
+window.addEventListener('keyup', onKeyUp);
+
+// app.ticker.add(() => {
+//     // Access the keyboard state
+//     // keys['KeyA'] will be true if 'A' key is currently pressed
+//     // keys['KeyB'] will be true if 'B' key is currently pressed
+//     // Add your logic here based on the key state  
+//     Object.keys(keys).forEach(k => {
+//         console.log(keys[k]);
+//     });
+
+//     if (keys.ArrowUp) {
+//         console.log({ keys })
+//         if (game.playerPaddleGraphics.position.y - 3 > 0) {
+//             socket.emit('paddleMovement', { y: game.playerPaddleGraphics.position.y - 3 });
+//         }
+//     }
+//     if (keys.ArrowDown) {
+//         console.log({ keys })
+//         if (game.playerPaddleGraphics.position.y + 3 < 400) {
+//             socket.emit('paddleMovement', { y: game.playerPaddleGraphics.position.y + 3 });
+//         }
+//     }
+// });
+
+
+
+
+
+window.onload = async (): Promise<void> => {
+    document.body.appendChild(app.view);
+    resizeCanvas();
+};
 
 function resizeCanvas(): void {
     const resize = () => {
@@ -58,23 +106,7 @@ function resizeCanvas(): void {
         app.stage.scale.x = window.innerWidth / gameWidth;
         app.stage.scale.y = window.innerHeight / gameHeight;
     };
-
     resize();
-
     window.addEventListener("resize", resize);
 }
 
-function getBird(): AnimatedSprite {
-    const bird = new AnimatedSprite([
-        Texture.from("birdUp.png"),
-        Texture.from("birdMiddle.png"),
-        Texture.from("birdDown.png"),
-    ]);
-
-    bird.loop = true;
-    bird.animationSpeed = 0.1;
-    bird.play();
-    bird.scale.set(3);
-
-    return bird;
-}
