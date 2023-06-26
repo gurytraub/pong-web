@@ -29,6 +29,12 @@ socket.on('disconnection', () => {
     console.log('Disconnected from server');
 });
 
+socket.on('goal', g => {
+    console.log('a Goal happened for player ', g.player);
+    console.log('new score is ' + g.scores);
+    game.popupText(app, 'GOAAAAAALL!!!!!!');
+});
+
 socket.on('player', p => {
     console.log('setting player info', { p });
     game.setPlayer(p.i, p.y, p.vy);
