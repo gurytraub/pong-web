@@ -1,5 +1,6 @@
 import Game, { GameMode } from './game';
 import * as PIXI from 'pixi.js';
+import gsap from "gsap";
 
 export default class PIXIGame extends Game {
     private ballGraphics: PIXI.Graphics;
@@ -49,6 +50,16 @@ export default class PIXIGame extends Game {
         app.stage.addChild(this.wallTopGraphics, this.wallBottomGraphics, this.playerPaddleGraphics,
             this.opponentPaddleGraphics, this.ballGraphics);
 
+
+        this.playerPaddleGraphics.pivot.set(this.playerPaddleGraphics.width / 2, this.playerPaddleGraphics.height / 2);
+        const idleAnimation = gsap.to(this.playerPaddleGraphics.scale, {
+            x: 1.12,
+            y: 1.4,
+            duration: 1,
+            repeat: -1, // -1 means repeat indefinitely
+            yoyo: true, // Makes the animation reverse back and forth
+            ease: 'power1.inOut' // Easing function for smooth animation
+        });
     }
     protected gameLoop(): void {
         super.gameLoop();
