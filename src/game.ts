@@ -5,8 +5,7 @@ import * as Matter from 'matter-js';
 
 class EventEmitter {
     constructor() { }
-    public emit(davar: any, davar2: any) {
-        console.log("AMIT is EMITTING " + davar.toString());
+    public emit(name: string, event: any) {
     }
 }
 
@@ -22,6 +21,8 @@ export default class Game extends EventEmitter {
     protected wallBottom: Matter.Body;
     protected interval?: NodeJS.Timer;
     protected mode: GameMode;
+
+    protected lastUpdate: number = 0;
 
     readonly BASE_PLAYER_SPEED = 1;
     readonly MAX_PLAYER_SPEED = 2;
@@ -40,7 +41,7 @@ export default class Game extends EventEmitter {
             Matter.Bodies.rectangle(800 - pd - 10, 160, pd, ph, paddleOpts)
         ];
 
-        const ball = Matter.Bodies.rectangle(30, 30, 6, 6, { isSensor: true });
+        const ball = Matter.Bodies.rectangle(394, 194, 6, 6, { isSensor: true });
         ball.label = 'ball';
         ball.friction = 0;
         ball.frictionAir = 0;
@@ -88,6 +89,7 @@ export default class Game extends EventEmitter {
             this.setBall(30, 30, 0.4, 0.04);
         }
         Matter.Events.on(this.engine, 'collisionStart', this.collisionHandler.bind(this));
+        this.lastUpdate = (new Date()).getTime();
         this.interval = setInterval(this.gameLoop.bind(this), 1000 / 60);
     }
 
@@ -143,8 +145,13 @@ export default class Game extends EventEmitter {
                     this.setPlayer(i, p.position.y, Math.max(p.velocity.y - this.SPEED_ACCELERATION, -this.MAX_PLAYER_SPEED));
                 }
             }
-            Matter.Engine.update(this.engine);
         }
+
+        const now = (new Date()).getTime();
+        const delta = now - this.lastUpdate;
+        Matter.Engine.update(this.engine, delta);
+        this.lastUpdate = now;
+
     }
 
     public World() {
