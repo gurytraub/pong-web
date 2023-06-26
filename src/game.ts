@@ -91,6 +91,16 @@ export default class Game extends EventEmitter {
         Matter.Events.on(this.engine, 'collisionStart', this.collisionHandler.bind(this));
         this.lastUpdate = (new Date()).getTime();
         this.interval = setInterval(this.gameLoop.bind(this), 1000 / 60);
+
+        if (this.mode === GameMode.SERVER) {
+            this.interval = setInterval(this.gameLoop.bind(this), 1000 / 60);
+        } else {
+            const outerGameLoop = () => {
+                this.gameLoop();
+                requestAnimationFrame(outerGameLoop);
+            }
+            outerGameLoop();
+        }
     }
 
     public stop() {
