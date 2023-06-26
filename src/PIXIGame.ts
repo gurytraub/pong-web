@@ -30,7 +30,7 @@ export default class PIXIGame extends Game {
 
         this.playerPaddleGraphics = new PIXI.Graphics();
         this.playerPaddleGraphics.beginFill(0xffffff);
-        this.playerPaddleGraphics.drawRect(0, 0, this.paddleWidth, this.paddleHeight);
+        this.playerPaddleGraphics.drawRect(0, 0, this.PADDLE_WIDTH, this.PADDLE_HEIGHT);
         this.playerPaddleGraphics.endFill();
         this.playerPaddleGraphics.x = this.players[0].position.x;
         this.playerPaddleGraphics.y = this.players[0].position.y;
