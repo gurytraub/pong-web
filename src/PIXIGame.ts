@@ -49,6 +49,10 @@ export default class PIXIGame extends Game {
         app.stage.addChild(this.ballGraphics);
     }
 
+    protected requestAnimationFrame(): void {
+        window.requestAnimationFrame(this.gameLoop.bind(this));
+    }
+
     protected gameLoop(): void {
         super.gameLoop();
 
