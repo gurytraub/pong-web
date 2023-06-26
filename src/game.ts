@@ -19,7 +19,7 @@ export default class Game extends EventEmitter {
     protected ball: Matter.Body;
     protected wallTop: Matter.Body;
     protected wallBottom: Matter.Body;
-    protected interval?: NodeJS.Timer;
+    protected active: boolean = false;
     protected mode: GameMode;
 
     protected lastUpdate: number = 0;
@@ -41,7 +41,7 @@ export default class Game extends EventEmitter {
             Matter.Bodies.rectangle(800 - pd - 10, 160, pd, ph, paddleOpts)
         ];
 
-        const ball = Matter.Bodies.rectangle(394, 194, 6, 6, { isSensor: true });
+        const ball = Matter.Bodies.rectangle(395, 195, 10, 10, { isSensor: true });
         ball.label = 'ball';
         ball.friction = 0;
         ball.frictionAir = 0;
@@ -86,25 +86,16 @@ export default class Game extends EventEmitter {
 
     public start(reset: boolean = true) {
         if (this.mode === GameMode.SERVER && reset) {
-            this.setBall(30, 30, 0.4, 0.04);
+            this.setBall(30, 30, 1, 0.2);
         }
         Matter.Events.on(this.engine, 'collisionStart', this.collisionHandler.bind(this));
         this.lastUpdate = (new Date()).getTime();
-        this.interval = setInterval(this.gameLoop.bind(this), 1000 / 60);
-
-        if (this.mode === GameMode.SERVER) {
-            this.interval = setInterval(this.gameLoop.bind(this), 1000 / 60);
-        } else {
-            const outerGameLoop = () => {
-                this.gameLoop();
-                requestAnimationFrame(outerGameLoop);
-            }
-            outerGameLoop();
-        }
+        this.active = true;
+        this.gameLoop();
     }
 
     public stop() {
-        clearInterval(this.interval);
+        this.active = false;
     }
 
     public setPlayer(i: number, y: number, vy: number) {
@@ -143,7 +134,15 @@ export default class Game extends EventEmitter {
         });
     }
 
+    protected requestAnimationFrame() {
+        setTimeout(this.gameLoop.bind(this), 1000 / 60);
+    }
+
     protected gameLoop() {
+        if (!this.active) {
+            return;
+        }
+
         // players acceleration
         for (let i = 0; i < 2; i++) {
             const p = this.players[i];
@@ -162,6 +161,7 @@ export default class Game extends EventEmitter {
         Matter.Engine.update(this.engine, delta);
         this.lastUpdate = now;
 
+        this.requestAnimationFrame();
     }
 
     public World() {
