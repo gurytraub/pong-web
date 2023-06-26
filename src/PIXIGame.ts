@@ -46,7 +46,8 @@ export default class PIXIGame extends Game {
         this.ballGraphics.endFill();
         this.ballGraphics.x = this.ball.position.x;
         this.ballGraphics.y = this.ball.position.y;
-        app.stage.addChild(this.ballGraphics);
+        app.stage.addChild(this.wallTopGraphics, this.wallBottomGraphics, this.playerPaddleGraphics,
+            this.opponentPaddleGraphics, this.ballGraphics);
     }
 
     protected requestAnimationFrame(): void {
@@ -58,11 +59,11 @@ export default class PIXIGame extends Game {
 
         this.playerPaddleGraphics.x = this.players[0].position.x;
         this.playerPaddleGraphics.y = this.players[0].position.y;
+
         this.opponentPaddleGraphics.x = this.players[1].position.x;
         this.opponentPaddleGraphics.y = this.players[1].position.y;
 
         this.ballGraphics.x = this.ball.position.x;
         this.ballGraphics.y = this.ball.position.y;
-
     }
 }
