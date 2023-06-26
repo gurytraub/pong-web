@@ -68,11 +68,11 @@ export default class PIXIGame extends Game {
         this.ballGraphics.y = this.ball.position.y;
     }
 
-
     public popupText(app: PIXI.Application, txt: string): void {
         const text = new PIXI.Text(txt, {
+            fontFamily: 'Tahoma',
             fill: 'red',
-            fontSize: 128,
+            fontSize: 64,
         });
 
         // Set the initial position and visibility of the text
@@ -101,5 +101,24 @@ export default class PIXIGame extends Game {
         }
         // Start the animation
         animateText();
+    }
+
+    public setHudText(app: PIXI.Application, connected: boolean, playerNumber: number): void {
+        const rect = new PIXI.Graphics();
+        rect.beginFill(connected ? 0x00ff00 : 0xff0000);
+        // rect.lineStyle({ width: 1, color: 0xffffff });
+        rect.drawRect(5, 5, 2, 2);
+        rect.endFill();
+        app.stage.addChild(rect);
+
+        const text = new PIXI.Text(`Player ${playerNumber}`, {
+            // fontFamily: 'Tahoma',
+            fill: 'white',
+            fontSize: 24,
+        });
+        text.scale = { x: .25, y: .25 };
+        text.x = 10;
+        text.y = 8;
+        app.stage.addChild(text);
     }
 }
