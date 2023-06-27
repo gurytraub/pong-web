@@ -6,31 +6,13 @@ export default class PIXIGame extends Game {
     private ballGraphics: PIXI.Graphics;
     private playerPaddleGraphics: PIXI.Graphics;
     private opponentPaddleGraphics: PIXI.Graphics;
-    private wallTopGraphics: PIXI.Graphics;
-    private wallBottomGraphics: PIXI.Graphics;
 
     constructor(app: PIXI.Application) {
         super(GameMode.CLIENT);
 
-        this.wallTopGraphics = new PIXI.Graphics();
-        this.wallTopGraphics.beginFill(0xff0000);
-        this.wallTopGraphics.drawRect(0, 0, 800, 5);
-        this.wallTopGraphics.x = this.wallTop.position.x;
-        this.wallTopGraphics.y = this.wallTop.position.y;
-        this.wallTopGraphics.endFill();
-        app.stage.addChild(this.wallTopGraphics);
-
-        this.wallBottomGraphics = new PIXI.Graphics();
-        this.wallBottomGraphics.beginFill(0x00ff00);
-        this.wallBottomGraphics.drawRect(0, 0, 800, 5);
-        this.wallBottomGraphics.x = this.wallBottom.position.x;
-        this.wallBottomGraphics.y = this.wallBottom.position.y;
-        this.wallBottomGraphics.endFill();
-        app.stage.addChild(this.wallBottomGraphics);
-
         this.playerPaddleGraphics = new PIXI.Graphics();
         this.playerPaddleGraphics.beginFill(0xffffff);
-        this.playerPaddleGraphics.drawRect(0, 0, this.paddleWidth, this.paddleHeight);
+        this.playerPaddleGraphics.drawRect(0, 0, this.PADDLE_WIDTH, this.PADDLE_HEIGHT);
         this.playerPaddleGraphics.endFill();
         this.playerPaddleGraphics.x = this.players[0].position.x;
         this.playerPaddleGraphics.y = this.players[0].position.y;
@@ -51,8 +33,7 @@ export default class PIXIGame extends Game {
         this.ballGraphics.x = this.ball.position.x;
         this.ballGraphics.y = this.ball.position.y;
 
-        app.stage.addChild(this.wallTopGraphics, this.wallBottomGraphics, this.playerPaddleGraphics,
-            this.opponentPaddleGraphics, this.ballGraphics);
+        app.stage.addChild(this.playerPaddleGraphics, this.opponentPaddleGraphics, this.ballGraphics);
 
 
         this.playerPaddleGraphics.pivot.set(this.playerPaddleGraphics.width / 2, this.playerPaddleGraphics.height / 2);

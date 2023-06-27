@@ -14,11 +14,8 @@ export enum GameMode { CLIENT, SERVER };
 export default class Game extends EventEmitter {
     protected engine: Matter.Engine;
     protected players: Matter.Body[];
-    protected goals: Matter.Body[];
     protected scores: number[];
     protected ball: Matter.Body;
-    protected wallTop: Matter.Body;
-    protected wallBottom: Matter.Body;
     protected active: boolean = false;
     protected mode: GameMode;
 
@@ -48,11 +45,8 @@ export default class Game extends EventEmitter {
             Matter.Bodies.rectangle(pd, this.BOARD_VCENTER - (this.PADDLE_HEIGHT * 0.5), pd, ph, paddleOpts),
             Matter.Bodies.rectangle(this.BOARD_WIDTH - pd - 10, this.BOARD_VCENTER - (this.PADDLE_HEIGHT * 0.5), pd, ph, paddleOpts)
         ];
-
-        this.goals = [
-            Matter.Bodies.rectangle(-1, 0, 1, this.BOARD_HEIGHT, { isStatic: true }),
-            Matter.Bodies.rectangle(this.BOARD_WIDTH, 0, 1, this.BOARD_HEIGHT, { isStatic: true })
-        ];
+        this.players[0].label = "player0";
+        this.players[1].label = "player1";
 
         const ball = Matter.Bodies.rectangle(
             this.BOARD_WIDTH * 0.5 - this.BALL_RADIUS, this.BOARD_HEIGHT * 0.5 - this.BALL_RADIUS,
@@ -63,54 +57,28 @@ export default class Game extends EventEmitter {
         this.ball = ball;
         this.scores = [0, 0];
 
-        this.wallTop = Matter.Bodies.rectangle(0, 0, 800, 5, { isStatic: true });
-        this.wallTop.label = 'wallTop';
-
-        this.wallBottom = Matter.Bodies.rectangle(0, 395, 800, 5, { isStatic: true });
-        this.wallBottom.label = 'wallBottom';
-
-        Matter.World.add(this.engine.world, [...this.players, ball, this.wallTop, this.wallBottom]);
+        Matter.World.add(this.engine.world, [...this.players, ball]);
     }
 
     private collisionHandler(event: Matter.IEventCollision<Matter.Engine>) {
         const b = this.ball;
         for (const pair of event.pairs) {
+            // for the left (first) player set the target ball velocity to be positive
+            let vx = Math.abs(b.velocity.x);
             for (const player of this.players) {
                 if (pair.bodyA === b && pair.bodyB === player ||
                     pair.bodyA === player && pair.bodyB === b
                 ) {
                     if (this.mode === GameMode.SERVER) {
                         // Reverse the ball's velocity in the x-axis
-                        this.setBall(b.position.x, b.position.y, -b.velocity.x, b.velocity.y);
+                        this.setBall(b.position.x, b.position.y, vx, b.velocity.y);
                     } else {
                         this.setBall(b.position.x, b.position.y, 0, 0);
                     }
                     break;
                 }
-            }
-            for (const wall of [this.wallTop, this.wallBottom]) {
-                if (pair.bodyA === this.ball && pair.bodyB === wall ||
-                    pair.bodyA === wall && pair.bodyB === this.ball
-                ) {
-                    // Reverse the ball's velocity in the x-axis
-                    this.setBall(b.position.x, b.position.y, b.velocity.x, -b.velocity.y);
-                    break;
-                }
-            }
-
-            if (this.mode === GameMode.SERVER) {
-                for (let i = 0; i < 2; i++) {
-                    const goal = this.goals[i];
-                    if (pair.bodyA === this.ball && pair.bodyB === goal ||
-                        pair.bodyA === goal && pair.bodyB === this.ball
-                    ) {
-                        this.scores[i]++;
-                        // Reverse the ball's velocity in the x-axis
-                        this.emit('goal', { player: i, scores: this.scores });
-                        this.resetBall();
-                        break;
-                    }
-                }
+                // for the right (second) player set the target ball velocity to be positive
+                vx *= -1;
             }
         }
     }
@@ -187,16 +155,37 @@ export default class Game extends EventEmitter {
         if (!this.active) {
             return;
         }
+        if (this.mode === GameMode.SERVER) {
+            // ball collision
+            const bp = this.ball.position;
+            const vy = Math.abs(this.ball.velocity.y);
+            const maxY = this.BOARD_HEIGHT - this.BALL_RADIUS * 2;
+            if (bp.y < 0) {
+                console.log('ball hit top');
+                this.setBall(bp.x, 0, this.ball.velocity.x, vy);
+            } else if (bp.y > maxY) {
+                console.log('ball hit bottom');
+                this.setBall(bp.x, maxY, this.ball.velocity.x, -vy);
+            }
+            if (bp.x < 0) {
+                this.scores[0]++;
+                this.emit('score', { i: 0, scores: this.scores });
+                this.resetBall();
+            } else if (bp.x > this.BOARD_WIDTH - this.BALL_RADIUS * 2) {
+                this.scores[1]++;
+                this.emit('score', { i: 1, scores: this.scores });
+                this.resetBall();
+            }
+            // players acceleration
+            for (let i = 0; i < 2; i++) {
+                const p = this.players[i];
 
-        // players acceleration
-        for (let i = 0; i < 2; i++) {
-            const p = this.players[i];
-
-            if (p.velocity.y != 0) {
-                if (p.velocity.y > 0 && p.velocity.y < this.MAX_PLAYER_SPEED) {
-                    this.setPlayer(i, p.position.y, Math.min(p.velocity.y + this.SPEED_ACCELERATION, this.MAX_PLAYER_SPEED));
-                } else if (p.velocity.y > -this.MAX_PLAYER_SPEED) {
-                    this.setPlayer(i, p.position.y, Math.max(p.velocity.y - this.SPEED_ACCELERATION, -this.MAX_PLAYER_SPEED));
+                if (p.velocity.y != 0) {
+                    if (p.velocity.y > 0 && p.velocity.y < this.MAX_PLAYER_SPEED) {
+                        this.setPlayer(i, p.position.y, Math.min(p.velocity.y + this.SPEED_ACCELERATION, this.MAX_PLAYER_SPEED));
+                    } else if (p.velocity.y > -this.MAX_PLAYER_SPEED) {
+                        this.setPlayer(i, p.position.y, Math.max(p.velocity.y - this.SPEED_ACCELERATION, -this.MAX_PLAYER_SPEED));
+                    }
                 }
             }
         }
