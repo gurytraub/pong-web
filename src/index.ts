@@ -14,6 +14,7 @@ const app = new Application({
 });
 
 let game: PIXIGame;
+let connected: boolean = false;
 let playerNumber: number;
 
 game = new PIXIGame(app);
@@ -21,17 +22,34 @@ game.start();
 
 const socket = io('http://localhost:3000/');
 
+
+const setHudText = () => {
+    game.setHudText(app, connected, playerNumber);
+}
+
 socket.on('connect', () => {
     console.log('Connected to server');
+    connected = true;
+    setHudText();
 });
 
-socket.on('disconnection', () => {
+socket.on('disconnect', () => {
+    connected = false;
     console.log('Disconnected from server');
+    setHudText();
+});
+
+socket.on('goal', g => {
+    console.log('a Goal happened for player ', g.player);
+    console.log('new score is ' + g.scores);
+    game.popupText(app, 'GOAAAAAALL!!!!!!');
 });
 
 socket.on('player', p => {
     console.log('setting player info', { p });
+    playerNumber = p.i;
     game.setPlayer(p.i, p.y, p.vy);
+    setHudText();
 });
 
 socket.on('ball', b => {

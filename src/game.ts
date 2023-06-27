@@ -161,10 +161,8 @@ export default class Game extends EventEmitter {
             const vy = Math.abs(this.ball.velocity.y);
             const maxY = this.BOARD_HEIGHT - this.BALL_RADIUS * 2;
             if (bp.y < 0) {
-                console.log('ball hit top');
                 this.setBall(bp.x, 0, this.ball.velocity.x, vy);
             } else if (bp.y > maxY) {
-                console.log('ball hit bottom');
                 this.setBall(bp.x, maxY, this.ball.velocity.x, -vy);
             }
             if (bp.x < 0) {
