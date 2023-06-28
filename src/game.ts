@@ -21,9 +21,9 @@ export default class Game extends EventEmitter {
 
     protected lastUpdate: number = 0;
 
-    readonly BASE_PLAYER_SPEED = 1;
-    readonly MAX_PLAYER_SPEED = 2;
-    readonly SPEED_ACCELERATION = 0.05;
+    readonly BASE_PLAYER_SPEED = 2;
+    readonly MAX_PLAYER_SPEED = 4;
+    readonly SPEED_ACCELERATION = 0.1;
     readonly BOARD_WIDTH = 800;
     readonly BOARD_HEIGHT = 400;
     readonly BOARD_HCENTER = this.BOARD_WIDTH * 0.5;
@@ -31,7 +31,7 @@ export default class Game extends EventEmitter {
     readonly PADDLE_WIDTH = 10;
     readonly PADDLE_HEIGHT = 80;
     readonly BALL_RADIUS = 5;
-    readonly BALL_SPEED = 2;
+    readonly BALL_SPEED = 4;
 
     constructor(mode: GameMode) {
         super();
@@ -135,7 +135,7 @@ export default class Game extends EventEmitter {
     }
 
     public resetBall() {
-        let vx = Math.random() + 0.8;
+        let vx = Math.random() + this.BALL_SPEED * 0.5;
         let vy = Math.sqrt(this.BALL_SPEED * this.BALL_SPEED - vx * vx)
         if (Math.random() > 0.5) {
             vx = -vx;
