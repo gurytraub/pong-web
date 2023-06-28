@@ -1,5 +1,4 @@
-import { Application, Loader, Texture, AnimatedSprite } from "pixi.js";
-import * as PIXI from 'pixi.js';
+import { Application } from "pixi.js";
 import io from 'socket.io-client';
 import "./style.css";
 import PIXIGame from './PIXIGame';
@@ -21,11 +20,11 @@ let score: string;
 game = new PIXIGame(app);
 game.start();
 
-const socket = io('http://localhost:3000/');
+const socket = io('http://192.168.50.89:3000/');
 
 
 const setHudText = () => {
-    console.log({ connected, playerNumber, score })
+    // console.log({ connected, playerNumber, score })
     game.setHudText(app, connected, playerNumber, score);
 }
 
