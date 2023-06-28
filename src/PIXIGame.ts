@@ -13,10 +13,10 @@ export default class PIXIGame extends Game {
 
     constructor(app: PIXI.Application) {
         super(GameMode.CLIENT);
-
+        const [pw, ph] = [this.PADDLE_WIDTH, this.PADDLE_HEIGHT];
         this.playerPaddleGraphics = new PIXI.Graphics();
         this.playerPaddleGraphics.beginFill(0xffffff);
-        this.playerPaddleGraphics.drawRect(0, 0, this.PADDLE_WIDTH, this.PADDLE_HEIGHT);
+        this.playerPaddleGraphics.drawRect(0, -ph * 0.5, pw, ph);
         this.playerPaddleGraphics.endFill();
         this.playerPaddleGraphics.x = this.players[0].position.x;
         this.playerPaddleGraphics.y = this.players[0].position.y;
@@ -24,7 +24,7 @@ export default class PIXIGame extends Game {
 
         this.opponentPaddleGraphics = new PIXI.Graphics();
         this.opponentPaddleGraphics.beginFill(0xffffff);
-        this.opponentPaddleGraphics.drawRect(0, 0, 10, 80);
+        this.opponentPaddleGraphics.drawRect(0, -ph * 0.5, pw, ph);
         this.opponentPaddleGraphics.endFill();
         this.opponentPaddleGraphics.x = this.players[1].position.x;
         this.opponentPaddleGraphics.y = this.players[1].position.y;

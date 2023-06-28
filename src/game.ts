@@ -12,15 +12,6 @@ class EventEmitter {
 export enum GameMode { CLIENT, SERVER };
 
 export default class Game extends EventEmitter {
-    protected engine: Matter.Engine;
-    protected players: Matter.Body[];
-    protected scores: number[];
-    protected ball: Matter.Body;
-    protected active: boolean = false;
-    protected mode: GameMode;
-
-    protected lastUpdate: number = 0;
-
     readonly BASE_PLAYER_SPEED = 2;
     readonly MAX_PLAYER_SPEED = 4;
     readonly SPEED_ACCELERATION = 0.1;
@@ -32,6 +23,17 @@ export default class Game extends EventEmitter {
     readonly PADDLE_HEIGHT = 80;
     readonly BALL_RADIUS = 5;
     readonly BALL_SPEED = 4;
+
+    protected engine: Matter.Engine;
+    protected players: Matter.Body[];
+    protected scores: number[];
+    protected ball: Matter.Body;
+    protected active: boolean = false;
+    protected mode: GameMode;
+
+    protected ballSpeed: number = this.BALL_SPEED;
+    protected lastUpdate: number = 0;
+
 
     constructor(mode: GameMode) {
         super();
@@ -71,8 +73,10 @@ export default class Game extends EventEmitter {
                 ) {
                     if (this.mode === GameMode.SERVER) {
                         // Reverse the ball's velocity in the x-axis
-                        this.setBall(b.position.x, b.position.y, vx, b.velocity.y);
-                    } else {
+                        const vv = vx * vx + b.velocity.y * b.velocity.y;
+                        const vy = player.velocity.y * 0.2 + b.velocity.y;
+                        this.setBall(b.position.x, b.position.y, Math.sqrt(vv - vy * vy), vy);
+                    } else if (b.velocity.x != vx) {
                         this.setBall(b.position.x, b.position.y, 0, 0);
                     }
                     break;
