@@ -7,6 +7,10 @@ export default class PIXIGame extends Game {
     private playerPaddleGraphics: PIXI.Graphics;
     private opponentPaddleGraphics: PIXI.Graphics;
 
+    private scoreText: PIXI.Text;
+    private playerText: PIXI.Text;
+    private connectedRect: PIXI.Graphics;
+
     constructor(app: PIXI.Application) {
         super(GameMode.CLIENT);
 
@@ -35,6 +39,29 @@ export default class PIXIGame extends Game {
 
         app.stage.addChild(this.playerPaddleGraphics, this.opponentPaddleGraphics, this.ballGraphics);
 
+        this.connectedRect = new PIXI.Graphics();
+        this.connectedRect.beginFill(0xff0000);
+        this.connectedRect.drawRect(5, 5, 2, 2);
+        this.connectedRect.endFill();
+        app.stage.addChild(this.connectedRect);
+
+        this.playerText = new PIXI.Text(``, {
+            fill: 'white',
+            fontSize: 24,
+        });
+        this.playerText.scale = { x: .5, y: .5 };
+        this.playerText.x = 20;
+        this.playerText.y = 2;
+        app.stage.addChild(this.playerText);
+
+        this.scoreText = new PIXI.Text(`0 - 0`, {
+            fill: 'red',
+            fontSize: 24
+        });
+        this.scoreText.scale = { x: .5, y: .5 };
+        this.scoreText.x = app.stage.width / 2 - 5;
+        this.scoreText.y = 44;
+        app.stage.addChild(this.scoreText);
 
         // this.playerPaddleGraphics.pivot.set(this.playerPaddleGraphics.width / 2, this.playerPaddleGraphics.height / 2);
         // const idleAnimation = gsap.to(this.playerPaddleGraphics.scale, {
@@ -99,22 +126,16 @@ export default class PIXIGame extends Game {
         animateText();
     }
 
-    public setHudText(app: PIXI.Application, connected: boolean, playerNumber: number): void {
-        const rect = new PIXI.Graphics();
-        rect.beginFill(connected ? 0x00ff00 : 0xff0000);
-        // rect.lineStyle({ width: 1, color: 0xffffff });
-        rect.drawRect(5, 5, 2, 2);
-        rect.endFill();
-        app.stage.addChild(rect);
-
-        const text = new PIXI.Text(`Player ${playerNumber}`, {
-            // fontFamily: 'Tahoma',
-            fill: 'white',
-            fontSize: 24,
-        });
-        text.scale = { x: .25, y: .25 };
-        text.x = 10;
-        text.y = 8;
-        app.stage.addChild(text);
+    public setHudText(app: PIXI.Application, connected: boolean, playerNumber: number, score: string): void {
+        this.connectedRect.clear();
+        this.connectedRect.beginFill(connected ? 0x00ff00 : 0xff0000);
+        this.connectedRect.drawRect(5, 5, 2, 2);
+        this.connectedRect.endFill();
+        if (playerNumber) {
+            this.playerText.text = `Player ${playerNumber}`;
+        }
+        if (score) {
+            this.scoreText.text = `${score.replace(',', ' - ')}`;
+        }
     }
 }
