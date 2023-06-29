@@ -20,7 +20,7 @@ let score: string;
 game = new PIXIGame(app);
 game.start();
 
-const socket = io('http://192.168.50.89:3000/');
+const socket = io('localhost:3000'); //io('http://192.168.50.89:3000/');
 
 
 const setHudText = () => {
@@ -50,7 +50,7 @@ socket.on('score', g => {
 });
 
 socket.on('player', p => {
-    console.log('setting player info', { p });
+    // console.log('setting player info', { p });
     game.setPlayer(p.i, p.y, p.vy);
     setHudText();
 });

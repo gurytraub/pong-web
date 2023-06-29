@@ -1,9 +1,10 @@
 import Game, { GameMode } from './game';
 import * as PIXI from 'pixi.js';
-import * as particles from 'pixi-particles'
+import * as particles from '@pixi/particle-emitter'
 import gsap from "gsap";
 
 export default class PIXIGame extends Game {
+    private app: PIXI.Application;
     private ballGraphics: PIXI.Graphics;
     private playerPaddleGraphics: PIXI.Graphics;
     private opponentPaddleGraphics: PIXI.Graphics;
@@ -14,6 +15,7 @@ export default class PIXIGame extends Game {
 
     constructor(app: PIXI.Application) {
         super(GameMode.CLIENT);
+        this.app = app;
         const [pw, ph] = [this.PADDLE_WIDTH, this.PADDLE_HEIGHT];
         this.playerPaddleGraphics = new PIXI.Graphics();
         this.playerPaddleGraphics.beginFill(0xffffff);
@@ -73,9 +75,10 @@ export default class PIXIGame extends Game {
         //     yoyo: true, // Makes the animation reverse back and forth
         //     ease: 'power1.inOut' // Easing function for smooth animation
         // });
-
-        // this.onPaddleCollision(app, 0);
-        // console.log("PAHOT")
+        this.addEventListener('collide', (event: any) => {
+            const { detail } = event;
+            this.onPaddleCollision(detail.player);
+        });
     }
 
 
@@ -100,13 +103,13 @@ export default class PIXIGame extends Game {
         const text = new PIXI.Text(txt, {
             fontFamily: 'Tahoma',
             fill: 'red',
-            fontSize: 64,
+            fontSize: 48,
         });
 
         // Set the initial position and visibility of the text
         text.position.set(app.screen.width / 2, app.screen.height / 2);
         text.anchor.set(0.5);
-        text.x = app.screen.width / 2;
+        text.x = app.screen.width / 3;
         text.y = app.screen.height / 4;
         text.visible = false;
 
@@ -144,79 +147,140 @@ export default class PIXIGame extends Game {
         }
     }
 
-    private onPaddleCollision(app: PIXI.Application, player: number): void {
-        var emitter = new particles.Emitter(
-            // The PIXI.Container to put the emitter in
-            // if using blend modes, it's important to put this
-            // on top of a bitmap, and not use the root stage Container
-            app.stage,
+    private onPaddleCollision(player: number): void {
+        const particleGraphics = new PIXI.Graphics();
+        particleGraphics.beginFill(0xFFFFFF); // Set the fill color of the rectangle
+        particleGraphics.drawRect(0, 0, 4, 4); // Set the size of the rectangle
+        particleGraphics.endFill();
 
-            // The collection of particle images to use
-            [PIXI.Texture.from('assets/particle.png')],
+        // Create a texture from the graphics object
+        const particleTexture = this.app.renderer.generateTexture(particleGraphics);
 
-            // Emitter configuration, edit this to change the look
-            // of the emitter
-            {
-                "alpha": {
-                    "start": 1,
-                    "end": 0
+        const emitterConfiguration = {
+            emit: true,
+            autoUpdate: true,
+            lifetime: {
+                min: 0.5,
+                max: 0.5
+            },
+            frequency: 0.008,
+            spawnChance: 1,
+            particlesPerWave: 1,
+            emitterLifetime: 0.5,
+            maxParticles: 1000,
+            pos: {
+                x: this.playerPaddleGraphics.position.x,
+                y: this.playerPaddleGraphics.position.y
+            },
+            addAtBack: false,
+            behaviors: [
+                {
+                    type: 'alpha',
+                    config: {
+                        alpha: {
+                            list: [
+                                {
+                                    value: 0.8,
+                                    time: 0
+                                },
+                                {
+                                    value: 0.1,
+                                    time: 1
+                                }
+                            ],
+                        },
+                    }
                 },
-                "scale": {
-                    "start": 0.1,
-                    "end": 0.01,
-                    "minimumScaleMultiplier": 1
+                {
+                    type: 'scale',
+                    config: {
+                        scale: {
+                            list: [
+                                {
+                                    value: 1,
+                                    time: 0
+                                },
+                                {
+                                    value: 0.3,
+                                    time: 1
+                                }
+                            ],
+                        },
+                    }
                 },
-                "color": {
-                    "start": "#e4f9ff",
-                    "end": "#3fcbff"
+                {
+                    type: 'color',
+                    config: {
+                        color: {
+                            list: [
+                                {
+                                    value: "fb1010",
+                                    time: 0
+                                },
+                                {
+                                    value: "f5b830",
+                                    time: 1
+                                }
+                            ],
+                        },
+                    }
                 },
-                "speed": {
-                    "start": 200,
-                    "end": 50,
-                    "minimumSpeedMultiplier": 1
+                {
+                    type: 'moveSpeed',
+                    config: {
+                        speed: {
+                            list: [
+                                {
+                                    value: 200,
+                                    time: 0
+                                },
+                                {
+                                    value: 100,
+                                    time: 1
+                                }
+                            ],
+                            isStepped: false
+                        },
+                    }
                 },
-                "acceleration": {
-                    "x": 0,
-                    "y": 0
+                {
+                    type: 'rotationStatic',
+                    config: {
+                        min: 0,
+                        max: 360
+                    }
                 },
-                "maxSpeed": 0,
-                "startRotation": {
-                    "min": 0,
-                    "max": 360
+                {
+                    type: 'spawnShape',
+                    config: {
+                        type: 'torus',
+                        data: {
+                            x: 0,
+                            y: 0,
+                            radius: 10
+                        }
+                    }
                 },
-                "noRotation": false,
-                "rotationSpeed": {
-                    "min": 0,
-                    "max": 0
-                },
-                "lifetime": {
-                    "min": 0.2,
-                    "max": 0.8
-                },
-                "blendMode": "normal",
-                "frequency": 0.001,
-                "emitterLifetime": -1,
-                "maxParticles": 500,
-                "pos": {
-                    "x": 0,
-                    "y": 0
-                },
-                "addAtBack": false,
-                "spawnType": "circle",
-                "spawnCircle": {
-                    "x": 0,
-                    "y": 0,
-                    "r": 0
+                {
+                    type: 'textureSingle',
+                    config: {
+                        texture: particleTexture
+                    }
                 }
-            }
-        );
+            ],
+        };
+
+        // Create a sprite using the texture
+        // const particleSprite = new PIXI.Sprite(particleTexture);
+
+        var emitter = new particles.Emitter(this.app.stage, emitterConfiguration);
 
         // Calculate the current time
         var elapsed = Date.now();
 
         // Update function every frame
+        const _app = this.app;
         var update = function () {
-
             // Update the next frame
             requestAnimationFrame(update);
 
@@ -228,7 +292,7 @@ export default class PIXIGame extends Game {
             elapsed = now;
 
             // Should re-render the PIXI Stage
-            app.renderer.render(app.stage);
+            _app.renderer.render(_app.stage);
         };
         emitter.emit = true;
         emitter.update(elapsed);

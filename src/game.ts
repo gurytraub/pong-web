@@ -1,11 +1,17 @@
 //import { EventEmitter } from 'stream';
-
 import * as Matter from 'matter-js';
 
 
-class EventEmitter {
-    constructor() { }
-    public emit(name: string, event: any) {
+// class EventEmitter {
+//     constructor() {
+//     }
+//     public emit(name: string, event: any) {
+//     }
+// }
+class EventEmitter extends EventTarget {
+    emit(eventType: string, eventData: any) {
+        const event = new CustomEvent(eventType, { detail: eventData });
+        this.dispatchEvent(event);
     }
 }
 
@@ -75,8 +81,10 @@ export default class Game extends EventEmitter {
                         // Reverse the ball's velocity in the x-axis
                         const vv = vx * vx + b.velocity.y * b.velocity.y;
                         const vy = player.velocity.y * 0.2 + b.velocity.y;
+                        this.emit('collide', { player, b });
                         this.setBall(b.position.x, b.position.y, Math.sqrt(vv - vy * vy), vy);
                     } else if (b.velocity.x != vx) {
+                        this.emit('collide', { player, b });
                         this.setBall(b.position.x, b.position.y, 0, 0);
                     }
                     break;
