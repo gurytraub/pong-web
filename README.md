@@ -1,3 +1,7 @@
+# pong-web is a web (pixi.js and material.js based) game to show case match making and multiplayer gaming using node and typescript, the physics engine runs both on the client and the server. The GameServers (node/ typescript as well) this connects with are the pong project that can be found a www.github.com/ariellaub/pong.
+
+
+# based on 
 # pixi-typescript-boilerplate
 
 ## Beginner friendly template for pixi.js with [Webpack](https://webpack.js.org/)
