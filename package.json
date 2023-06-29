@@ -31,7 +31,7 @@
         "gsap": "^3.12.1",
         "matter-js": "^0.19.0",
         "pixi-spine": "^3.0.16",
-        "pixi.js": "^6.5.8",
+        "pixi.js": "^7.2.4",
         "regenerator-runtime": "^0.13.10",
         "socket.io-client": "^4.7.0",
         "tweenjs": "^1.0.2"
