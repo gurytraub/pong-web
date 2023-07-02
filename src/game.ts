@@ -11,7 +11,10 @@ import * as Matter from 'matter-js';
 class EventEmitter extends EventTarget {
     emit(eventType: string, eventData: any) {
         const event = new CustomEvent(eventType, { detail: eventData });
-        this.dispatchEvent(event);
+        if (event.type === 'collide') {
+            console.log({ event });
+            this.dispatchEvent(event);
+        }
     }
 }
 
@@ -39,7 +42,6 @@ export default class Game extends EventEmitter {
 
     protected ballSpeed: number = this.BALL_SPEED;
     protected lastUpdate: number = 0;
-
 
     constructor(mode: GameMode) {
         super();
@@ -81,11 +83,13 @@ export default class Game extends EventEmitter {
                         // Reverse the ball's velocity in the x-axis
                         const vv = vx * vx + b.velocity.y * b.velocity.y;
                         const vy = player.velocity.y * 0.2 + b.velocity.y;
-                        this.emit('collide', { player, b });
                         this.setBall(b.position.x, b.position.y, Math.sqrt(vv - vy * vy), vy);
                     } else if (b.velocity.x != vx) {
-                        this.emit('collide', { player, b });
                         this.setBall(b.position.x, b.position.y, 0, 0);
+                    }
+
+                    if (this.mode === GameMode.CLIENT) {
+                        this.emit('collide', { player, b });
                     }
                     break;
                 }

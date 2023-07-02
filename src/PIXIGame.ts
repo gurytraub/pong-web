@@ -81,7 +81,6 @@ export default class PIXIGame extends Game {
         });
     }
 
-
     protected requestAnimationFrame(): void {
         window.requestAnimationFrame(this.gameLoop.bind(this));
     }
@@ -147,7 +146,7 @@ export default class PIXIGame extends Game {
         }
     }
 
-    private onPaddleCollision(player: number): void {
+    private onPaddleCollision(player: any): void {
         const particleGraphics = new PIXI.Graphics();
         particleGraphics.beginFill(0xFFFFFF); // Set the fill color of the rectangle
         particleGraphics.drawRect(0, 0, 4, 4); // Set the size of the rectangle
@@ -156,6 +155,97 @@ export default class PIXIGame extends Game {
         // Create a texture from the graphics object
         const particleTexture = this.app.renderer.generateTexture(particleGraphics);
 
+        const emitterConfiguration1 = {
+            emit: true,
+            autoUpdate: true,
+            maxParticles: 214, // Limit the number of particles emitted
+            lifetime: {
+                min: 1, // Increase the particle lifetime for them to last longer
+                max: 2,
+            },
+            frequency: 0.5, // Decrease the emission frequency
+            spawnChance: 1,
+            particlesPerWave: 4,
+            emitterLifetime: 2, // Increase the emitter lifetime to match particle lifetime
+            pos: {
+                x: this.playerPaddleGraphics.position.x + this.playerPaddleGraphics.width / 2,
+                y: this.playerPaddleGraphics.position.y + this.playerPaddleGraphics.height / 2,
+            },
+            addAtBack: false,
+            behaviors: [
+                {
+                    type: 'alpha',
+                    config: {
+                        alpha: {
+                            list: [
+                                { value: 1, time: 0 },
+                                { value: 0, time: 1 },
+                            ],
+                        },
+                    },
+                },
+                {
+                    type: 'scale',
+                    config: {
+                        scale: {
+                            list: [
+                                { value: 1, time: 0 },
+                                { value: 0, time: 1 },
+                            ],
+                        },
+                    },
+                },
+                {
+                    type: 'color',
+                    config: {
+                        color: {
+                            list: [
+                                { value: '0xFFFFFF', time: 0 }, // Use white color
+                                { value: '0xFFFFFF', time: 1 },
+                            ],
+                        },
+                    },
+                },
+                {
+                    type: 'moveSpeed',
+                    config: {
+                        speed: {
+                            list: [
+                                { value: 100, time: 0 },
+                                { value: 100, time: 1 },
+                            ],
+                            isStepped: false,
+                        },
+                    },
+                },
+                {
+                    type: 'rotationStatic',
+                    config: {
+                        min: 0,
+                        max: 0,
+                    },
+                },
+                {
+                    type: 'spawnShape',
+                    config: {
+                        type: 'torus',
+                        data: {
+                            x: 0,
+                            y: 0,
+                            radius: 10
+                        }
+                    }
+                },
+                {
+                    type: 'textureSingle',
+                    config: {
+                        texture: particleTexture,
+                    },
+                },
+            ],
+        };
+
+        console.log({ player });
         const emitterConfiguration = {
             emit: true,
             autoUpdate: true,
@@ -167,7 +257,7 @@ export default class PIXIGame extends Game {
             spawnChance: 1,
             particlesPerWave: 1,
             emitterLifetime: 0.5,
-            maxParticles: 1000,
+            maxParticles: 8,
             pos: {
                 x: this.playerPaddleGraphics.position.x,
                 y: this.playerPaddleGraphics.position.y
@@ -214,11 +304,11 @@ export default class PIXIGame extends Game {
                         color: {
                             list: [
                                 {
-                                    value: "fb1010",
+                                    value: "FDF3F3",
                                     time: 0
                                 },
                                 {
-                                    value: "f5b830",
+                                    value: "FFFFFF",
                                     time: 1
                                 }
                             ],
@@ -231,11 +321,11 @@ export default class PIXIGame extends Game {
                         speed: {
                             list: [
                                 {
-                                    value: 200,
+                                    value: 400,
                                     time: 0
                                 },
                                 {
-                                    value: 100,
+                                    value: 10,
                                     time: 1
                                 }
                             ],
@@ -251,15 +341,17 @@ export default class PIXIGame extends Game {
                     }
                 },
                 {
-                    type: 'spawnShape',
-                    config: {
-                        type: 'torus',
-                        data: {
-                            x: 0,
-                            y: 0,
-                            radius: 10
-                        }
-                    }
+                    // type: 'spawnShape',
+                    // config: {
+                    //     type: 'torus',
+                    //     data: {
+                    //         x: 0,
+                    //         y: 0,
+                    //         radius: 3
+                    //     }
+                    // }
+                    "type": "spawnPoint",
+                    "config": {}
                 },
                 {
                     type: 'textureSingle',

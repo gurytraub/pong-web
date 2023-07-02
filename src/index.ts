@@ -7,7 +7,7 @@ const gameHeight = 400;
 const gameWidth = 800;
 
 const app = new Application({
-    backgroundColor: 0xd3d3d3,
+    backgroundColor: 0x000000,
     width: gameWidth,
     height: gameHeight,
 });
