@@ -23,6 +23,7 @@ export default class PIXIGame extends Game {
         this.playerPaddleGraphics.endFill();
         this.playerPaddleGraphics.x = this.players[0].position.x;
         this.playerPaddleGraphics.y = this.players[0].position.y;
+        this.playerPaddleGraphics.pivot.set(1, .5);
         app.stage.addChild(this.playerPaddleGraphics);
 
         this.opponentPaddleGraphics = new PIXI.Graphics();
@@ -31,6 +32,7 @@ export default class PIXIGame extends Game {
         this.opponentPaddleGraphics.endFill();
         this.opponentPaddleGraphics.x = this.players[1].position.x;
         this.opponentPaddleGraphics.y = this.players[1].position.y;
+        this.opponentPaddleGraphics.pivot.set(0, 0.5);
         app.stage.addChild(this.opponentPaddleGraphics);
 
         this.ballGraphics = new PIXI.Graphics();
@@ -40,7 +42,7 @@ export default class PIXIGame extends Game {
         this.ballGraphics.x = this.ball.position.x;
         this.ballGraphics.y = this.ball.position.y;
 
-        app.stage.addChild(this.playerPaddleGraphics, this.opponentPaddleGraphics, this.ballGraphics);
+        app.stage.addChild(this.ballGraphics);
 
         this.connectedRect = new PIXI.Graphics();
         this.connectedRect.beginFill(0xff0000);
@@ -66,15 +68,6 @@ export default class PIXIGame extends Game {
         this.scoreText.y = 44;
         app.stage.addChild(this.scoreText);
 
-        // this.playerPaddleGraphics.pivot.set(this.playerPaddleGraphics.width / 2, this.playerPaddleGraphics.height / 2);
-        // const idleAnimation = gsap.to(this.playerPaddleGraphics.scale, {
-        //     x: 1.12,
-        //     y: 1.4,
-        //     duration: 1,
-        //     repeat: -1, // -1 means repeat indefinitely
-        //     yoyo: true, // Makes the animation reverse back and forth
-        //     ease: 'power1.inOut' // Easing function for smooth animation
-        // });
         this.addEventListener('collide', (event: any) => {
             const { detail } = event;
             this.onPaddleCollision(detail.player);
@@ -147,6 +140,18 @@ export default class PIXIGame extends Game {
     }
 
     private onPaddleCollision(player: any): void {
+        //first move the paddle a bit
+        const idleAnimation = gsap.to(this.playerPaddleGraphics, {
+            rotation: (Math.random() < 0.5 ? -1 : 1) * .05,
+            duration: .25,
+            repeat: 1, // -1 means repeat indefinitely
+            yoyo: true, // Makes the animation reverse back and forth
+            ease: 'power2.inOut' // Easing function for smooth animation
+        });
+
+
+        //now shoot some particles
+
         const particleGraphics = new PIXI.Graphics();
         particleGraphics.beginFill(0xFFFFFF); // Set the fill color of the rectangle
         particleGraphics.drawRect(0, 0, 4, 4); // Set the size of the rectangle
@@ -154,100 +159,9 @@ export default class PIXIGame extends Game {
 
         // Create a texture from the graphics object
         const particleTexture = this.app.renderer.generateTexture(particleGraphics);
-
-        const emitterConfiguration1 = {
-            emit: true,
-            autoUpdate: true,
-            maxParticles: 214, // Limit the number of particles emitted
-            lifetime: {
-                min: 1, // Increase the particle lifetime for them to last longer
-                max: 2,
-            },
-            frequency: 0.5, // Decrease the emission frequency
-            spawnChance: 1,
-            particlesPerWave: 4,
-            emitterLifetime: 2, // Increase the emitter lifetime to match particle lifetime
-            pos: {
-                x: this.playerPaddleGraphics.position.x + this.playerPaddleGraphics.width / 2,
-                y: this.playerPaddleGraphics.position.y + this.playerPaddleGraphics.height / 2,
-            },
-            addAtBack: false,
-            behaviors: [
-                {
-                    type: 'alpha',
-                    config: {
-                        alpha: {
-                            list: [
-                                { value: 1, time: 0 },
-                                { value: 0, time: 1 },
-                            ],
-                        },
-                    },
-                },
-                {
-                    type: 'scale',
-                    config: {
-                        scale: {
-                            list: [
-                                { value: 1, time: 0 },
-                                { value: 0, time: 1 },
-                            ],
-                        },
-                    },
-                },
-                {
-                    type: 'color',
-                    config: {
-                        color: {
-                            list: [
-                                { value: '0xFFFFFF', time: 0 }, // Use white color
-                                { value: '0xFFFFFF', time: 1 },
-                            ],
-                        },
-                    },
-                },
-                {
-                    type: 'moveSpeed',
-                    config: {
-                        speed: {
-                            list: [
-                                { value: 100, time: 0 },
-                                { value: 100, time: 1 },
-                            ],
-                            isStepped: false,
-                        },
-                    },
-                },
-                {
-                    type: 'rotationStatic',
-                    config: {
-                        min: 0,
-                        max: 0,
-                    },
-                },
-                {
-                    type: 'spawnShape',
-                    config: {
-                        type: 'torus',
-                        data: {
-                            x: 0,
-                            y: 0,
-                            radius: 10
-                        }
-                    }
-                },
-                {
-                    type: 'textureSingle',
-                    config: {
-                        texture: particleTexture,
-                    },
-                },
-            ],
-        };
-
-        console.log({ player });
         const emitterConfiguration = {
             emit: true,
+            destroyWhenComplete: true,
             autoUpdate: true,
             lifetime: {
                 min: 0.5,
@@ -388,5 +302,6 @@ export default class PIXIGame extends Game {
         };
         emitter.emit = true;
         emitter.update(elapsed);
+        console.log(this.playerPaddleGraphics.rotation);
     }
 }
