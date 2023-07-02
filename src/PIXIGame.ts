@@ -2,6 +2,9 @@ import Game, { GameMode } from './game';
 import * as PIXI from 'pixi.js';
 import * as particles from '@pixi/particle-emitter'
 import gsap from "gsap";
+import { sound } from '@pixi/sound';
+
+
 
 export default class PIXIGame extends Game {
     private app: PIXI.Application;
@@ -13,9 +16,14 @@ export default class PIXIGame extends Game {
     private playerText: PIXI.Text;
     private connectedRect: PIXI.Graphics;
 
+    // private slapSound = PIXI.Sound.from('resources/boing.mp3');
+
+
     constructor(app: PIXI.Application) {
         super(GameMode.CLIENT);
         this.app = app;
+        sound.add('slap', 'assets/slap.mp3')
+
         const [pw, ph] = [this.PADDLE_WIDTH, this.PADDLE_HEIGHT];
         this.playerPaddleGraphics = new PIXI.Graphics();
         this.playerPaddleGraphics.beginFill(0xffffff);
@@ -148,7 +156,7 @@ export default class PIXIGame extends Game {
             yoyo: true, // Makes the animation reverse back and forth
             ease: 'power2.inOut' // Easing function for smooth animation
         });
-
+        sound.play('slap');
 
         //now shoot some particles
 
@@ -171,7 +179,7 @@ export default class PIXIGame extends Game {
             spawnChance: 1,
             particlesPerWave: 1,
             emitterLifetime: 0.5,
-            maxParticles: 8,
+            maxParticles: 3,
             pos: {
                 x: this.playerPaddleGraphics.position.x,
                 y: this.playerPaddleGraphics.position.y
