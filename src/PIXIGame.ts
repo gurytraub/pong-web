@@ -89,10 +89,10 @@ export default class PIXIGame extends Game {
     protected gameLoop(): void {
         super.gameLoop();
 
-        this.playerPaddleGraphics.x = this.players[0].position.x;
+        // this.playerPaddleGraphics.x = this.players[0].position.x;
         this.playerPaddleGraphics.y = this.players[0].position.y;
 
-        this.opponentPaddleGraphics.x = this.players[1].position.x;
+        // this.opponentPaddleGraphics.x = this.players[1].position.x;
         this.opponentPaddleGraphics.y = this.players[1].position.y;
 
         this.ballGraphics.x = this.ball.position.x;
@@ -101,9 +101,9 @@ export default class PIXIGame extends Game {
 
     public popupText(app: PIXI.Application, txt: string): void {
         const text = new PIXI.Text(txt, {
-            fontFamily: 'Tahoma',
-            fill: 'red',
-            fontSize: 48,
+            fontFamily: 'Roboto',
+            fill: 'white',
+            fontSize: 32,
         });
 
         // Set the initial position and visibility of the text
@@ -139,8 +139,10 @@ export default class PIXIGame extends Game {
         this.connectedRect.beginFill(connected ? 0x00ff00 : 0xff0000);
         this.connectedRect.drawRect(5, 5, 2, 2);
         this.connectedRect.endFill();
-        if (playerNumber) {
+        if (connected && playerNumber) {
             this.playerText.text = `Player ${playerNumber}`;
+        } else {
+            this.playerText.text = `-----`
         }
         if (score) {
             this.scoreText.text = `${score.replace(',', ' - ')}`;
@@ -149,6 +151,7 @@ export default class PIXIGame extends Game {
 
     private onPaddleCollision(player: any): void {
         //first move the paddle a bit
+        sound.play('slap');
         const idleAnimation = gsap.to(this.playerPaddleGraphics, {
             rotation: (Math.random() < 0.5 ? -1 : 1) * .05,
             duration: .25,
@@ -156,13 +159,10 @@ export default class PIXIGame extends Game {
             yoyo: true, // Makes the animation reverse back and forth
             ease: 'power2.inOut' // Easing function for smooth animation
         });
-        sound.play('slap');
-
         //now shoot some particles
-
         const particleGraphics = new PIXI.Graphics();
         particleGraphics.beginFill(0xFFFFFF); // Set the fill color of the rectangle
-        particleGraphics.drawRect(0, 0, 4, 4); // Set the size of the rectangle
+        particleGraphics.drawRect(0, 0, 8, 8); // Set the size of the rectangle
         particleGraphics.endFill();
 
         // Create a texture from the graphics object
@@ -175,11 +175,11 @@ export default class PIXIGame extends Game {
                 min: 0.5,
                 max: 0.5
             },
-            frequency: 0.008,
+            frequency: 0.08,
             spawnChance: 1,
             particlesPerWave: 1,
             emitterLifetime: 0.5,
-            maxParticles: 3,
+            maxParticles: 5,
             pos: {
                 x: this.playerPaddleGraphics.position.x,
                 y: this.playerPaddleGraphics.position.y
@@ -213,7 +213,7 @@ export default class PIXIGame extends Game {
                                     time: 0
                                 },
                                 {
-                                    value: 0.3,
+                                    value: 0.1,
                                     time: 1
                                 }
                             ],
@@ -258,20 +258,11 @@ export default class PIXIGame extends Game {
                 {
                     type: 'rotationStatic',
                     config: {
-                        min: 0,
-                        max: 360
+                        min: -90,
+                        max: 90
                     }
                 },
                 {
-                    // type: 'spawnShape',
-                    // config: {
-                    //     type: 'torus',
-                    //     data: {
-                    //         x: 0,
-                    //         y: 0,
-                    //         radius: 3
-                    //     }
-                    // }
                     "type": "spawnPoint",
                     "config": {}
                 },
