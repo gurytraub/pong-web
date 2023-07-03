@@ -89,16 +89,23 @@ export default class PIXIGame extends Game {
     protected gameLoop(): void {
         super.gameLoop();
 
-        // this.playerPaddleGraphics.x = this.players[0].position.x;
-        this.playerPaddleGraphics.y = this.players[0].position.y;
+        gsap.to(this.playerPaddleGraphics, {
+            y: this.players[0].position.y,
+            duration: 0.15,
+            ease: 'linear', //'power1.inOut',
+        });
+        gsap.to(this.opponentPaddleGraphics, {
+            y: this.players[1].position.y,
+            duration: 0.15,
+            ease: 'linear', //'power1.inOut',
 
-        // this.opponentPaddleGraphics.x = this.players[1].position.x;
-        this.opponentPaddleGraphics.y = this.players[1].position.y;
-
-        this.ballGraphics.x = this.ball.position.x;
-        this.ballGraphics.y = this.ball.position.y;
-
-
+        });
+        gsap.to(this.ballGraphics, {
+            x: this.ball.position.x,
+            y: this.ball.position.y,
+            duration: 0.1,
+            ease: 'linear', //'power1.inOut',
+        });
         // console.log(`FPS: ${PIXI.Ticker.shared.FPS}`);
     }
 
