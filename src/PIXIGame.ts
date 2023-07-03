@@ -97,6 +97,9 @@ export default class PIXIGame extends Game {
 
         this.ballGraphics.x = this.ball.position.x;
         this.ballGraphics.y = this.ball.position.y;
+
+
+        // console.log(`FPS: ${PIXI.Ticker.shared.FPS}`);
     }
 
     public popupText(app: PIXI.Application, txt: string): void {
@@ -142,7 +145,7 @@ export default class PIXIGame extends Game {
         if (connected && playerNumber) {
             this.playerText.text = `Player ${playerNumber}`;
         } else {
-            this.playerText.text = `-----`
+            this.playerText.text = `----- `
         }
         if (score) {
             this.scoreText.text = `${score.replace(',', ' - ')}`;
@@ -302,5 +305,9 @@ export default class PIXIGame extends Game {
         emitter.emit = true;
         emitter.update(elapsed);
         console.log(this.playerPaddleGraphics.rotation);
+    }
+
+    protected delta() {
+        return this.app.ticker.deltaMS;
     }
 }

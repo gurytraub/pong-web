@@ -205,8 +205,8 @@ export default class Game extends EventEmitter {
         }
 
         const now = (new Date()).getTime();
-        const delta = now - this.lastUpdate;
-        Matter.Engine.update(this.engine, delta);
+        // const delta = now - this.lastUpdate;
+        Matter.Engine.update(this.engine, this.delta());
         this.lastUpdate = now;
 
         this.requestAnimationFrame();
@@ -214,6 +214,11 @@ export default class Game extends EventEmitter {
 
     public World() {
         return this.engine.world;
+    }
+
+    protected delta() {
+        const now = (new Date()).getTime();
+        return now - this.lastUpdate;
     }
 }
 
