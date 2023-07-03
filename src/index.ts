@@ -10,6 +10,7 @@ const app = new Application({
     backgroundColor: 0x000000,
     width: gameWidth,
     height: gameHeight,
+    forceCanvas: true
 });
 
 let game: PIXIGame;
@@ -56,7 +57,7 @@ socket.on('player', p => {
 });
 
 socket.on('ball', b => {
-    // console.log('setting ball info', { b });
+    console.log('setting ball info', { b });
     game.setBall(b.x, b.y, b.vx, b.vy);
 });
 
