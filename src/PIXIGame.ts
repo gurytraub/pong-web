@@ -313,8 +313,13 @@ export default class PIXIGame {
     //     console.log(this.playerPaddleGraphics.rotation);
     // }
 
+    public update() {
+        this.app.ticker.update();
+        window.requestAnimationFrame(this.update.bind(this));
+    }
     public start() {
         this.app.ticker.start();
+        requestAnimationFrame(this.update.bind(this));
     }
 
     public stop() {
