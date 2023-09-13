@@ -27,7 +27,7 @@
     "dependencies": {
         "@pixi/particle-emitter": "^5.0.8",
         "@pixi/sound": "^4.4.0",
-        "@types/tweenjs": "^1.0.4",
+        "@types/tweenjs": "^1.0.5",
         "core-js": "^3.26.0",
         "gsap": "^3.12.1",
         "matter-js": "^0.19.0",
